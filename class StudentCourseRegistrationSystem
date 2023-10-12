@@ -1,0 +1,111 @@
+import java.util.*;
+
+public class StudentCourseRegistrationSystem {
+
+    // Course database
+    private static Map<String, Course> courseDatabase = new HashMap<>();
+
+    // Student database
+    private static Map<Integer, Student> studentDatabase = new HashMap<>();
+
+    // Course listing
+    public static void displayCourseListing() {
+        System.out.println("Available courses:");
+        for (Course course : courseDatabase.values()) {
+            System.out.println(course.getCode() + " " + course.getTitle() + " " + course.getCapacity() + " " + course.getSchedule());
+        }
+    }
+
+    // Student registration
+    public static void registerStudent(Student student, Course course) {
+        // Check if the student has met the prerequisites for the course
+        if (student.hasPrerequisites(course)) {
+            // Check if the course is full
+            if (course.isAvailable()) {
+                // Register the student for the course
+                student.registerCourse(course);
+                course.enrollStudent(student);
+            } else {
+                // Add the student to the waitlist for the course
+                course.addToWaitlist(student);
+            }
+        } else {
+            // Display an error message to the user
+            System.out.println("The student has not met the prerequisites for the course.");
+        }
+    }
+
+    // Course removal
+    public static void dropCourse(Student student, Course course) {
+        // Unregister the student from the course
+        student.dropCourse(course);
+        course.unenrollStudent(student);
+
+        // If there is a student on the waitlist for the course, enroll them in the course
+        if (!course.getWaitlist().isEmpty()) {
+            Student waitlistedStudent = course.getWaitlist().get(0);
+            registerStudent(waitlistedStudent, course);
+        }
+    }
+
+    public static void main(String[] args) {
+        // Create some courses
+        Course course1 = new Course("CS101", "Introduction to Computer Science", "This course is an introduction to the fundamental concepts of computer science.", 100, "MWF 10:00 AM - 11:00 AM");
+        Course course2 = new Course("CS102", "Data Structures and Algorithms", "This course covers the fundamental data structures and algorithms used in computer science.", 100, "MWF 11:00 AM - 12:00 PM");
+
+        // Add the courses to the course database
+        courseDatabase.put(course1.getCode(), course1);
+        courseDatabase.put(course2.getCode(), course2);
+
+        // Create some students
+        Student student1 = new Student(1, "John Doe");
+        Student student2 = new Student(2, "Jane Doe");
+
+        // Add the students to the student database
+        studentDatabase.put(student1.getId(), student1);
+        studentDatabase.put(student2.getId(), student2);
+
+        // Register the students for courses
+        registerStudent(student1, course1);
+        registerStudent(student2, course2);
+
+        // Display the course listing
+        displayCourseListing();
+
+        // Drop a course for a student
+        dropCourse(student1, course1);
+
+        // Display the course listing again
+        displayCourseListing();
+    }
+}
+
+class Course {
+
+    private String code;
+    private String title;
+    private String description;
+    private int capacity;
+    private String schedule;
+
+    // List of students enrolled in the course
+    private List<Student> students = new ArrayList<>();
+
+    // Waitlist for the course
+    private Queue<Student> waitlist = new LinkedList<>();
+
+    public Course(String code, String title, String description, int capacity, String schedule) {
+        this.code = code;
+        this.title = title;
+        this.description = description;
+        this.capacity = capacity;
+        this.schedule = schedule;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getTitle() {
+        return title;
+    }
